@@ -1,0 +1,32 @@
+import {createContext,useContext,useEffect,useState} from 'react'
+import {fireStore} from '../Firebase/Firebase'
+import {collection,getDocs} from 'firebase/firestore'
+
+const Context = createContext(null)
+export const ItemsContext = () => useContext(Context)
+export const ItemsContextProvider = ({children})=>{
+    const [items,setItems]=useState(null) 
+    useEffect(()=>{
+        const fetchItemsFromFirestore = async ()=>{
+            try{
+                const productsCollection = collection(fireStore,'products')
+                const productSnapshot = await getDocs(productsCollection)
+                const productsList = productSnapshot.docs.map(doc=>({
+                    id:doc.id,
+                    ...doc.data()
+                })) 
+                setItems(productsList)
+            }catch(error){
+                console.log(error,'error fetching products')
+            }
+        } 
+        fetchItemsFromFirestore()
+    },[])
+    return (
+        <>
+        <Context.Provider value={{items,setItems}}>
+            {children}
+        </Context.Provider>
+        </>
+    )
+}
